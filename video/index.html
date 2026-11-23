@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: 'ZCOOL QingKe HuangYou'; font-style: normal; font-weight: 400; src: url('capture/assets/fonts/zcool-qingke-huangyou-400.woff2') format('woff2'); }
+      @font-face { font-family: 'Noto Serif SC'; font-style: normal; font-weight: 300; src: url('capture/assets/fonts/noto-serif-sc-300.woff2') format('woff2'); }
+      @font-face { font-family: 'Noto Serif SC'; font-style: normal; font-weight: 500; src: url('capture/assets/fonts/noto-serif-sc-500.woff2') format('woff2'); }
+      @font-face { font-family: 'Noto Serif SC'; font-style: normal; font-weight: 700; src: url('capture/assets/fonts/noto-serif-sc-700.woff2') format('woff2'); }
+      :root {
+        --bg: #0b1020;
+        --fg: #e8ecf8;
+        --dim: #9aa3bd;
+        --indigo: #818cf8;
+        --cyan: #22d3ee;
+        --green: #34d399;
+        --font-display: "ZCOOL QingKe HuangYou", sans-serif;
+        --font-body: "Noto Serif SC", serif;
+        --font-mono: "IBM Plex Mono", monospace;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0; width: 1920px; height: 1080px;
+        overflow: hidden; background: var(--bg);
+        font-family: var(--font-body); color: var(--fg);
+      }
+      .scene {
+        position: absolute; top: 0; left: 0;
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: var(--bg);
+      }
+      #scene1 { z-index: 1; }
+      #scene2 { z-index: 2; opacity: 0; }
+      #scene3 { z-index: 3; opacity: 0; }
+      #scene4 { z-index: 4; opacity: 0; }
+      #scene5 { z-index: 5; opacity: 0; }
+
+      .scene-content {
+        position: relative; z-index: 2;
+        display: flex; flex-direction: column;
+        width: 100%; height: 100%;
+        padding: 100px 140px; gap: 40px;
+      }
+      .glow { position: absolute; border-radius: 50%; z-index: 1; pointer-events: none; }
+      .glow-indigo { background: radial-gradient(circle, rgba(129,140,248,0.22) 0%, rgba(129,140,248,0) 68%); }
+      .glow-cyan { background: radial-gradient(circle, rgba(34,211,238,0.16) 0%, rgba(34,211,238,0) 68%); }
+      .ghost {
+        position: absolute; z-index: 0;
+        font-family: var(--font-display);
+        color: rgba(232,236,248,0.05);
+        line-height: 1; white-space: nowrap; pointer-events: none;
+      }
+      .kicker {
+        font-family: var(--font-mono); font-size: 28px; font-weight: 600;
+        letter-spacing: 0.3em; color: var(--cyan);
+      }
+      .headline { font-family: var(--font-display); font-weight: 400; color: var(--fg); }
+      .glass {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 24px;
+      }
+      .logo-box {
+        display: grid; place-items: center; flex: none;
+        background: linear-gradient(135deg, #818cf8, #22d3ee);
+        color: #ffffff;
+      }
+
+      /* ---------- Scene 1 ---------- */
+      #scene1 .scene-content { justify-content: center; gap: 34px; padding: 120px 160px; }
+      #g1 { width: 1000px; height: 1000px; top: -380px; left: -300px; }
+      #g2 { width: 900px; height: 900px; bottom: -420px; right: -260px; }
+      #ghost1 { font-size: 400px; right: -40px; bottom: -110px; }
+      #s1-chip { display: flex; align-items: center; gap: 16px; }
+      #s1-chip .logo-box { width: 56px; height: 56px; border-radius: 14px; }
+      #s1-chip .logo-box svg { width: 30px; height: 30px; }
+      #s1-chip span {
+        font-family: var(--font-mono); font-size: 28px; font-weight: 600;
+        letter-spacing: 0.35em; color: var(--cyan);
+      }
+      #s1-title { font-size: 176px; line-height: 1.06; letter-spacing: 0.01em; }
+      #s1-rule { width: 320px; height: 4px; border-radius: 2px; background: var(--cyan); }
+      #s1-sub { font-size: 44px; font-weight: 300; color: var(--dim); line-height: 1.5; }
+      #s1-tags { font-family: var(--font-mono); font-size: 28px; color: var(--dim); letter-spacing: 0.08em; }
+
+      /* ---------- Scene 2 ---------- */
+      #g3 { width: 950px; height: 950px; top: -400px; right: -280px; }
+      #ghost2 { font-size: 360px; left: -30px; top: -90px; }
+      #s2-head { display: flex; flex-direction: column; gap: 16px; }
+      #s2-title { font-size: 78px; line-height: 1.15; }
+      #s2-duo { display: flex; gap: 56px; flex: 1; min-height: 0; }
+      #todo-card { width: 780px; padding: 44px 48px; display: flex; flex-direction: column; gap: 30px; }
+      .card-head { display: flex; align-items: baseline; gap: 18px; }
+      .card-head b { font-size: 34px; font-weight: 700; }
+      .card-head small { font-family: var(--font-mono); font-size: 28px; color: var(--dim); }
+      .todo-row { display: flex; align-items: center; gap: 20px; }
+      .checkbox {
+        width: 36px; height: 36px; border-radius: 10px; flex: none;
+        border: 2px solid rgba(255,255,255,0.25);
+        display: grid; place-items: center; color: #ffffff;
+      }
+      .checkbox.done { background: var(--indigo); border-color: var(--indigo); }
+      .checkbox svg { width: 22px; height: 22px; }
+      .todo-row span { font-size: 30px; font-weight: 500; }
+      .todo-row.done span { text-decoration: line-through; color: var(--dim); }
+      #pomo-card { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; }
+      .ring-wrap { position: relative; width: 300px; height: 300px; }
+      .ring-wrap svg { transform: rotate(-90deg); }
+      .ring-bg { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 14; }
+      .ring-fg {
+        fill: none; stroke: url(#grad2); stroke-width: 14; stroke-linecap: round;
+        stroke-dasharray: 653.45; stroke-dashoffset: 653.45;
+      }
+      .ring-center {
+        position: absolute; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 6px;
+      }
+      #pomo-time {
+        font-family: var(--font-mono); font-size: 76px; font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      #pomo-label { font-size: 28px; font-weight: 300; color: var(--dim); }
+      #pomo-stat { font-family: var(--font-mono); font-size: 28px; color: var(--cyan); }
+
+      /* ---------- Scene 3 ---------- */
+      #g4 { width: 900px; height: 900px; bottom: -420px; left: -240px; }
+      #ghost3 { font-size: 340px; right: -20px; top: -80px; }
+      #s3-head { display: flex; flex-direction: column; gap: 16px; }
+      #s3-title { font-size: 78px; line-height: 1.15; }
+      #s3-pipeline { display: flex; align-items: center; gap: 22px; }
+      .pipe-chip {
+        font-family: var(--font-mono); font-size: 28px; color: var(--fg);
+        padding: 16px 28px; border-radius: 999px;
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14);
+        white-space: nowrap;
+      }
+      .pipe-chip.hl-cyan { border-color: var(--cyan); color: var(--cyan); }
+      .pipe-chip.hl-indigo { border-color: var(--indigo); color: var(--indigo); }
+      .pipe-arrow { width: 36px; height: 24px; color: var(--dim); flex: none; }
+      #s3-flip-zone { flex: 1; min-height: 0; display: grid; place-items: center; }
+      #flip-card { width: 980px; height: 340px; perspective: 1200px; }
+      #flip-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; }
+      .flip-face {
+        position: absolute; inset: 0; backface-visibility: hidden;
+        border-radius: 28px; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 20px; padding: 40px;
+        text-align: center;
+      }
+      .flip-front { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); }
+      .flip-back { background: rgba(129,140,248,0.22); border: 1px solid var(--indigo); transform: rotateY(180deg); }
+      .flip-tag { font-family: var(--font-mono); font-size: 28px; color: var(--dim); letter-spacing: 0.1em; }
+      #flip-q { font-size: 46px; font-weight: 700; line-height: 1.4; }
+      #flip-a { font-family: var(--font-display); font-size: 58px; line-height: 1.3; }
+      #s3-note { font-size: 30px; font-weight: 300; color: var(--dim); text-align: center; }
+
+      /* ---------- Scene 4 ---------- */
+      #g5 { width: 900px; height: 900px; top: -380px; left: -260px; }
+      #g6 { width: 850px; height: 850px; bottom: -400px; right: -240px; }
+      #ghost4 { font-size: 340px; left: -20px; bottom: -100px; }
+      #s4-head { display: flex; flex-direction: column; gap: 16px; }
+      #s4-title { font-size: 78px; line-height: 1.15; }
+      #s4-net { display: flex; align-items: center; justify-content: center; gap: 24px; height: 280px; }
+      .net-node { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+      .net-circle {
+        width: 132px; height: 132px; border-radius: 50%;
+        display: grid; place-items: center;
+        border: 2px solid var(--indigo); background: rgba(129,140,248,0.12);
+        color: var(--fg);
+      }
+      .net-circle.cloud { width: 152px; height: 152px; border-color: var(--cyan); background: rgba(34,211,238,0.12); }
+      .net-circle svg { width: 58px; height: 58px; }
+      .net-node span { font-family: var(--font-mono); font-size: 28px; color: var(--dim); white-space: nowrap; }
+      .net-link { width: 220px; height: 40px; flex: none; }
+      .net-path { stroke: var(--cyan); stroke-width: 3; stroke-dasharray: 10 10; fill: none; }
+      .net-head { fill: var(--cyan); }
+      #url-card { padding: 34px 44px; display: flex; flex-direction: column; gap: 16px; }
+      #url-meta { display: flex; align-items: center; gap: 14px; }
+      #live-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--green); flex: none; }
+      #url-meta b { font-family: var(--font-mono); font-size: 28px; color: var(--green); letter-spacing: 0.2em; }
+      #url-meta span { font-size: 28px; font-weight: 300; color: var(--dim); }
+      #url-text {
+        font-family: var(--font-mono); font-size: 31px; font-weight: 600;
+        color: var(--fg); white-space: nowrap;
+      }
+      #url-text em { font-style: normal; color: var(--dim); }
+      #s4-chips { display: flex; gap: 20px; }
+      .s4-chip {
+        font-family: var(--font-mono); font-size: 28px; color: var(--dim);
+        padding: 12px 24px; border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04);
+      }
+
+      /* ---------- Scene 5 ---------- */
+      #g7 { width: 1300px; height: 1300px; top: 50%; left: 50%; margin: -650px 0 0 -650px; }
+      #scene5 .scene-content { align-items: center; justify-content: center; gap: 32px; padding: 120px; }
+      #s5-logo { width: 84px; height: 84px; border-radius: 22px; }
+      #s5-logo svg { width: 46px; height: 46px; }
+      #s5-title { font-size: 128px; line-height: 1.1; }
+      #s5-tech { font-family: var(--font-mono); font-size: 28px; color: var(--cyan); letter-spacing: 0.12em; }
+      #s5-sub { font-size: 38px; font-weight: 300; color: var(--dim); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1920" data-height="1080">
+
+      <!-- Scene 1 · 开场 -->
+      <div id="scene1" class="scene" data-layout-allow-overflow data-layout-allow-occlusion>
+        <div id="g1" class="glow glow-indigo" data-layout-ignore></div>
+        <div id="g2" class="glow glow-cyan" data-layout-ignore></div>
+        <div id="ghost1" class="ghost" data-layout-ignore>STUDY</div>
+        <div class="scene-content">
+          <div id="s1-chip">
+            <div class="logo-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            </div>
+            <span>STUDY WORKBENCH</span>
+          </div>
+          <h1 id="s1-title" class="headline">学习工作台</h1>
+          <div id="s1-rule"></div>
+          <p id="s1-sub">把专注、复习与规划，装进一个页面</p>
+          <div id="s1-tags">Trae 搭建 · Skill 驱动 · 公网可达</div>
+        </div>
+      </div>
+
+      <!-- Scene 2 · 专注 -->
+      <div id="scene2" class="scene" data-layout-allow-overflow>
+        <div id="g3" class="glow glow-indigo" data-layout-ignore></div>
+        <div id="ghost2" class="ghost" data-layout-ignore>FOCUS</div>
+        <div class="scene-content">
+          <div id="s2-head">
+            <div id="s2-kicker" class="kicker">FOCUS · POMODORO</div>
+            <h2 id="s2-title" class="headline">专注，从 25 分钟开始</h2>
+          </div>
+          <div id="s2-duo">
+            <div id="todo-card" class="glass">
+              <div class="card-head"><b>待办事项</b><small>本地保存</small></div>
+              <div class="todo-row done">
+                <div class="checkbox done"><svg class="check-pop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <span>整理数据结构笔记</span>
+              </div>
+              <div class="todo-row done">
+                <div class="checkbox done"><svg class="check-pop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <span>完成栈与队列作业</span>
+              </div>
+              <div class="todo-row">
+                <div class="checkbox"></div>
+                <span>预习计算机网络</span>
+              </div>
+            </div>
+            <div id="pomo-card" class="glass">
+              <div class="ring-wrap">
+                <svg width="300" height="300" viewBox="0 0 240 240">
+                  <defs>
+                    <linearGradient id="grad2" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#818cf8"/><stop offset="100%" stop-color="#22d3ee"/>
+                    </linearGradient>
+                  </defs>
+                  <circle class="ring-bg" cx="120" cy="120" r="104"/>
+                  <circle id="pomo-ring" class="ring-fg" cx="120" cy="120" r="104"/>
+                </svg>
+                <div class="ring-center">
+                  <div id="pomo-time">25:00</div>
+                  <div id="pomo-label">专注中</div>
+                </div>
+              </div>
+              <div id="pomo-stat">今日番茄 × 3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 3 · Skill 复习 -->
+      <div id="scene3" class="scene" data-layout-allow-overflow>
+        <div id="g4" class="glow glow-cyan" data-layout-ignore></div>
+        <div id="ghost3" class="ghost" data-layout-ignore>REVIEW</div>
+        <div class="scene-content">
+          <div id="s3-head">
+            <div id="s3-kicker" class="kicker">SKILL · SPACED REPETITION</div>
+            <h2 id="s3-title" class="headline">笔记进，卡片出</h2>
+          </div>
+          <div id="s3-pipeline">
+            <div class="pipe-chip">原始笔记</div>
+            <svg class="pipe-arrow" viewBox="0 0 36 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="12" x2="30" y2="12"/><polyline points="22 4 30 12 22 20"/></svg>
+            <div class="pipe-chip hl-cyan">study-notes Skill</div>
+            <svg class="pipe-arrow" viewBox="0 0 36 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="12" x2="30" y2="12"/><polyline points="22 4 30 12 22 20"/></svg>
+            <div class="pipe-chip">记忆卡片 ×8</div>
+            <svg class="pipe-arrow" viewBox="0 0 36 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="12" x2="30" y2="12"/><polyline points="22 4 30 12 22 20"/></svg>
+            <div class="pipe-chip hl-indigo">今日复习</div>
+          </div>
+          <div id="s3-flip-zone">
+            <div id="flip-card" data-layout-allow-overlap>
+              <div id="flip-inner">
+                <div class="flip-face flip-front">
+                  <div class="flip-tag">数据结构 · 栈与队列</div>
+                  <div id="flip-q">栈和队列的共同本质是什么？</div>
+                </div>
+                <div class="flip-face flip-back">
+                  <div class="flip-tag">参考答案</div>
+                  <div id="flip-a">都是操作受限的线性表</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="s3-note">艾宾浩斯间隔重复：+1 / +3 / +7 天自动排期</div>
+        </div>
+      </div>
+
+      <!-- Scene 4 · 公网访问 -->
+      <div id="scene4" class="scene" data-layout-allow-occlusion>
+        <div id="g5" class="glow glow-indigo" data-layout-ignore></div>
+        <div id="g6" class="glow glow-cyan" data-layout-ignore></div>
+        <div id="ghost4" class="ghost" data-layout-ignore>ACCESS</div>
+        <div class="scene-content">
+          <div id="s4-head">
+            <div id="s4-kicker" class="kicker">CLOUDFLARE TUNNEL</div>
+            <h2 id="s4-title" class="headline">一条隧道，公网直达</h2>
+          </div>
+          <div id="s4-net">
+            <div class="net-node">
+              <div class="net-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              </div>
+              <span>本地服务 :8000</span>
+            </div>
+            <svg class="net-link" viewBox="0 0 220 40"><path class="net-path" d="M0,20 H204"/><polygon class="net-head" points="204,12 220,20 204,28"/></svg>
+            <div class="net-node">
+              <div class="net-circle cloud">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+              </div>
+              <span>Cloudflare 边缘网络</span>
+            </div>
+            <svg class="net-link" viewBox="0 0 220 40"><path class="net-path" d="M0,20 H204"/><polygon class="net-head" points="204,12 220,20 204,28"/></svg>
+            <div class="net-node">
+              <div class="net-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              </div>
+              <span>任意设备访问</span>
+            </div>
+          </div>
+          <div id="url-card" class="glass">
+            <div id="url-meta"><div id="live-dot"></div><b>LIVE</b><span>公网地址 · 无需公网 IP</span></div>
+            <div id="url-text"><em>https://</em>announcement-snowboard-weekends-suddenly.trycloudflare.com</div>
+          </div>
+          <div id="s4-chips">
+            <div class="s4-chip">零路由器配置</div>
+            <div class="s4-chip">HTTPS 自动加密</div>
+            <div class="s4-chip">手机 / 平板直达</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 5 · 收尾 -->
+      <div id="scene5" class="scene">
+        <div id="g7" class="glow glow-indigo" data-layout-ignore></div>
+        <div class="scene-content">
+          <div id="s5-logo" class="logo-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <h2 id="s5-title" class="headline">学习工作台</h2>
+          <div id="s5-tech">Trae × HyperFrames × study-notes Skill</div>
+          <div id="s5-sub">让每一天的学习，都有迹可循</div>
+        </div>
+      </div>
+
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      /* ===== Scene 1 · 开场 (0 - 5.5) ===== */
+      tl.from("#s1-chip", { y: 30, opacity: 0, duration: 0.55, ease: "power3.out" }, 0.2);
+      tl.from("#s1-title", { y: 90, opacity: 0, duration: 0.85, ease: "expo.out" }, 0.45);
+      tl.from("#s1-sub", { y: 34, opacity: 0, duration: 0.6, ease: "power2.out" }, 0.95);
+      tl.from("#s1-rule", { scaleX: 0, transformOrigin: "left center", duration: 0.6, ease: "power2.inOut" }, 1.05);
+      tl.from("#s1-tags", { y: 20, opacity: 0, duration: 0.5, ease: "sine.out" }, 1.35);
+      tl.fromTo("#g1", { scale: 1 }, { scale: 1.1, duration: 2.6, yoyo: true, repeat: 2, ease: "sine.inOut" }, 0.1);
+      tl.fromTo("#g2", { scale: 1.05 }, { scale: 0.95, duration: 2.6, yoyo: true, repeat: 2, ease: "sine.inOut" }, 0.1);
+      tl.fromTo("#ghost1", { x: -30 }, { x: 30, duration: 6, ease: "none" }, 0.1);
+      tl.fromTo("#s1-rule", { opacity: 1 }, { opacity: 0.5, duration: 1.5, yoyo: true, repeat: 2, ease: "sine.inOut" }, 1.9);
+      tl.fromTo("#s1-chip", { y: 0 }, { y: -8, duration: 1.8, yoyo: true, repeat: 1, ease: "sine.inOut" }, 2.0);
+
+      /* T1 = 5.5 · push slide */
+      tl.to("#scene1", { x: -1920, duration: 0.5, ease: "power3.inOut" }, 5.5);
+      tl.fromTo("#scene2", { x: 1920, opacity: 1 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.inOut" }, 5.5);
+
+      /* ===== Scene 2 · 专注 (6 - 12) ===== */
+      tl.from("#s2-kicker", { x: -40, opacity: 0, duration: 0.5, ease: "power3.out" }, 6.15);
+      tl.from("#s2-title", { x: -60, opacity: 0, duration: 0.7, ease: "expo.out" }, 6.3);
+      tl.from("#todo-card", { y: 70, opacity: 0, duration: 0.7, ease: "power3.out" }, 6.6);
+      tl.from("#pomo-card", { y: 70, opacity: 0, duration: 0.7, ease: "power3.out" }, 6.8);
+      tl.from(".todo-row", { x: -36, opacity: 0, duration: 0.5, stagger: 0.18, ease: "power2.out" }, 6.95);
+      tl.fromTo("#pomo-ring", { strokeDashoffset: 653.45 }, { strokeDashoffset: 30, duration: 1.0, ease: "power2.inOut" }, 7.3);
+      tl.from("#pomo-time", { scale: 0.85, opacity: 0, duration: 0.5, ease: "back.out(1.8)" }, 7.5);
+      tl.from(".check-pop", { scale: 0, duration: 0.4, stagger: 0.2, ease: "back.out(2.5)" }, 7.55);
+      tl.from("#pomo-label", { opacity: 0, duration: 0.4, ease: "sine.out" }, 7.7);
+      tl.from("#pomo-stat", { y: 20, opacity: 0, duration: 0.5, ease: "power2.out" }, 8.1);
+      var cnt = { t: 0 };
+      tl.to(cnt, {
+        t: 8, duration: 4.2, ease: "none",
+        onUpdate: function () {
+          var r = 1500 - Math.round(cnt.t);
+          document.getElementById("pomo-time").textContent =
+            String(Math.floor(r / 60)).padStart(2, "0") + ":" + String(r % 60).padStart(2, "0");
+        }
+      }, 7.6);
+      tl.to("#pomo-ring", { strokeDashoffset: 52, duration: 3.6, ease: "none" }, 8.3);
+      tl.fromTo("#g3", { scale: 1 }, { scale: 1.08, duration: 2.6, yoyo: true, repeat: 2, ease: "sine.inOut" }, 6.1);
+      tl.fromTo("#ghost2", { x: 20 }, { x: -20, duration: 6.4, ease: "none" }, 6.1);
+
+      /* T2 = 12.0 · push slide */
+      tl.to("#scene2", { x: -1920, duration: 0.5, ease: "power3.inOut" }, 12.0);
+      tl.fromTo("#scene3", { x: 1920, opacity: 1 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.inOut" }, 12.0);
+
+      /* ===== Scene 3 · Skill 复习 (12.5 - 18.5) ===== */
+      tl.from("#s3-kicker", { x: -40, opacity: 0, duration: 0.5, ease: "power3.out" }, 12.65);
+      tl.from("#s3-title", { y: 50, opacity: 0, duration: 0.7, ease: "expo.out" }, 12.8);
+      tl.from(".pipe-chip", { y: 36, opacity: 0, duration: 0.45, stagger: 0.14, ease: "power3.out" }, 13.15);
+      tl.from(".pipe-arrow", { scaleX: 0, opacity: 0, duration: 0.3, stagger: 0.14, ease: "power2.out" }, 13.35);
+      tl.from("#flip-card", { scale: 0.9, y: 60, opacity: 0, duration: 0.75, ease: "expo.out" }, 13.7);
+      tl.from("#s3-note", { y: 24, opacity: 0, duration: 0.5, ease: "sine.out" }, 14.3);
+      tl.fromTo("#g4", { scale: 1, opacity: 0.7 }, { scale: 1.25, opacity: 1, duration: 0.5, yoyo: true, repeat: 1, ease: "sine.inOut" }, 16.1);
+      tl.to("#flip-inner", { rotationY: 180, duration: 0.7, ease: "power2.inOut" }, 16.2);
+      tl.fromTo("#ghost3", { x: -20 }, { x: 20, duration: 6.4, ease: "none" }, 12.6);
+
+      /* T3 = 18.5 · vertical push (topic change accent) */
+      tl.to("#scene3", { y: -1080, duration: 0.5, ease: "power3.inOut" }, 18.5);
+      tl.fromTo("#scene4", { y: 1080, opacity: 1 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.inOut" }, 18.5);
+
+      /* ===== Scene 4 · 公网访问 (19 - 25) ===== */
+      tl.from("#s4-kicker", { x: -40, opacity: 0, duration: 0.5, ease: "power3.out" }, 19.15);
+      tl.from("#s4-title", { x: -60, opacity: 0, duration: 0.7, ease: "expo.out" }, 19.3);
+      tl.from(".net-node", { scale: 0.6, opacity: 0, duration: 0.5, stagger: 0.2, ease: "back.out(2)" }, 19.75);
+      tl.from(".net-link", { scaleX: 0, opacity: 0, transformOrigin: "left center", duration: 0.4, stagger: 0.2, ease: "power2.out" }, 20.0);
+      tl.fromTo(".net-path", { strokeDashoffset: 0 }, { strokeDashoffset: -40, duration: 1.2, repeat: 3, ease: "none" }, 20.4);
+      tl.from("#url-card", { y: 60, opacity: 0, duration: 0.65, ease: "power3.out" }, 20.5);
+      tl.from("#url-text", { x: -24, opacity: 0, duration: 0.5, ease: "power2.out" }, 20.85);
+      tl.fromTo("#live-dot", { scale: 1, opacity: 1 }, { scale: 1.5, opacity: 0.55, duration: 0.7, yoyo: true, repeat: 5, ease: "sine.inOut" }, 21.0);
+      tl.from(".s4-chip", { y: 26, opacity: 0, duration: 0.4, stagger: 0.15, ease: "sine.out" }, 21.2);
+      tl.fromTo("#g5", { scale: 1 }, { scale: 1.08, duration: 2.6, yoyo: true, repeat: 2, ease: "sine.inOut" }, 19.1);
+      tl.fromTo("#g6", { scale: 1.06 }, { scale: 0.96, duration: 2.6, yoyo: true, repeat: 2, ease: "sine.inOut" }, 19.1);
+      tl.fromTo("#ghost4", { x: -20 }, { x: 20, duration: 6.4, ease: "none" }, 19.1);
+
+      /* T4 = 25.0 · blur crossfade (wind-down) */
+      tl.to("#scene4", { filter: "blur(10px)", scale: 1.03, opacity: 0, duration: 0.5, ease: "power2.inOut" }, 25.0);
+      tl.fromTo("#scene5",
+        { filter: "blur(10px)", scale: 0.97, opacity: 0 },
+        { filter: "blur(0px)", scale: 1, opacity: 1, duration: 0.5, ease: "power2.inOut" }, 25.1);
+
+      /* ===== Scene 5 · 收尾 (25.6 - 30) ===== */
+      tl.from("#s5-logo", { scale: 0.5, opacity: 0, duration: 0.55, ease: "back.out(2)" }, 25.7);
+      tl.from("#s5-title", { y: 60, opacity: 0, duration: 0.8, ease: "expo.out" }, 25.9);
+      tl.from("#s5-tech", { y: 24, opacity: 0, duration: 0.5, ease: "power2.out" }, 26.35);
+      tl.from("#s5-sub", { y: 20, opacity: 0, duration: 0.6, ease: "sine.out" }, 26.7);
+      tl.fromTo("#g7", { scale: 1 }, { scale: 1.06, duration: 2.4, yoyo: true, repeat: 1, ease: "sine.inOut" }, 25.2);
+      /* final scene fade-out (allowed) */
+      tl.to("#scene5", { opacity: 0, duration: 0.8, ease: "power1.inOut" }, 29.0);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
