@@ -1,0 +1,14 @@
+# 工具与二进制（不入库）
+.tools/
+
+# HyperFrames 运行时产物
+video/.hyperframes/
+video/node_modules/
+video/renders/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 日志
+*.log

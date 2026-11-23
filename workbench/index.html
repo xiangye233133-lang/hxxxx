@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学习工作台</title>
+<style>
+  :root[data-theme="dark"] {
+    --bg: #0b1020;
+    --bg-grad-1: rgba(99, 102, 241, .18);
+    --bg-grad-2: rgba(34, 211, 238, .12);
+    --card: rgba(255, 255, 255, .045);
+    --card-border: rgba(255, 255, 255, .09);
+    --text: #e8ecf8;
+    --text-dim: #9aa3bd;
+    --accent: #818cf8;
+    --accent-2: #22d3ee;
+    --danger: #f87171;
+    --ok: #34d399;
+    --input-bg: rgba(255, 255, 255, .06);
+    --shadow: 0 8px 30px rgba(0, 0, 0, .35);
+  }
+  :root[data-theme="light"] {
+    --bg: #f2f4fb;
+    --bg-grad-1: rgba(99, 102, 241, .14);
+    --bg-grad-2: rgba(34, 211, 238, .14);
+    --card: #ffffff;
+    --card-border: rgba(15, 23, 42, .08);
+    --text: #1e2438;
+    --text-dim: #6b7280;
+    --accent: #6366f1;
+    --accent-2: #0891b2;
+    --danger: #dc2626;
+    --ok: #059669;
+    --input-bg: #f3f4f6;
+    --shadow: 0 8px 24px rgba(30, 41, 59, .08);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    background:
+      radial-gradient(900px 500px at 12% -10%, var(--bg-grad-1), transparent 60%),
+      radial-gradient(900px 520px at 95% 8%, var(--bg-grad-2), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background .3s, color .3s;
+  }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 28px; gap: 16px; flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-logo {
+    width: 42px; height: 42px; border-radius: 12px; flex: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center; box-shadow: var(--shadow);
+  }
+  .brand-logo svg { width: 24px; height: 24px; }
+  .brand h1 { font-size: 20px; letter-spacing: .5px; }
+  .brand p { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .header-right { display: flex; align-items: center; gap: 18px; }
+  .clock { text-align: right; }
+  #clock-time { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  #clock-date { font-size: 12px; color: var(--text-dim); }
+  #theme-toggle {
+    border: 1px solid var(--card-border); background: var(--card); color: var(--text);
+    border-radius: 10px; padding: 8px 14px; cursor: pointer; font-size: 13px;
+  }
+  #theme-toggle:hover { border-color: var(--accent); }
+
+  .stats { display: flex; gap: 14px; padding: 0 28px 18px; flex-wrap: wrap; }
+  .stat {
+    flex: 1; min-width: 160px; display: flex; align-items: center; gap: 12px;
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 14px; padding: 14px 18px; box-shadow: var(--shadow);
+  }
+  .stat-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .stat b { font-size: 22px; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 12px; color: var(--text-dim); display: block; }
+
+  main {
+    display: grid; grid-template-columns: repeat(12, 1fr);
+    gap: 16px; padding: 0 28px 28px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 16px; padding: 20px; box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
+  }
+  .card h2 {
+    font-size: 15px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .card h2::before {
+    content: ""; width: 8px; height: 8px; border-radius: 3px; flex: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  }
+  .card h2 small { font-weight: 400; font-size: 12px; color: var(--text-dim); margin-left: auto; }
+  #card-todo { grid-column: span 4; }
+  #card-pomo { grid-column: span 4; }
+  #card-review { grid-column: span 4; }
+  #card-schedule { grid-column: span 8; }
+  #card-links { grid-column: span 4; }
+  @media (max-width: 1100px) {
+    #card-todo, #card-pomo, #card-review { grid-column: span 6; }
+    #card-schedule { grid-column: span 12; }
+    #card-links { grid-column: span 6; }
+  }
+  @media (max-width: 720px) {
+    main > .card { grid-column: span 12 !important; }
+    header, .stats, main { padding-left: 16px; padding-right: 16px; }
+  }
+
+  /* 待办 */
+  #todo-form { display: flex; gap: 8px; margin-bottom: 12px; }
+  #todo-input {
+    flex: 1; border: 1px solid var(--card-border); background: var(--input-bg);
+    color: var(--text); border-radius: 10px; padding: 9px 12px; font-size: 13px; outline: none;
+  }
+  #todo-input:focus { border-color: var(--accent); }
+  .btn {
+    border: none; border-radius: 10px; padding: 9px 16px; cursor: pointer;
+    font-size: 13px; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  }
+  .btn:hover { filter: brightness(1.1); }
+  .btn.ghost {
+    background: var(--input-bg); color: var(--text); border: 1px solid var(--card-border);
+  }
+  #todo-list { list-style: none; max-height: 260px; overflow-y: auto; }
+  #todo-list li {
+    display: flex; align-items: center; gap: 10px; padding: 8px 4px;
+    border-bottom: 1px dashed var(--card-border); font-size: 13.5px;
+  }
+  #todo-list li input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+  #todo-list li.done span { text-decoration: line-through; color: var(--text-dim); }
+  #todo-list li span { flex: 1; word-break: break-all; }
+  .del {
+    border: none; background: transparent; color: var(--text-dim); cursor: pointer;
+    font-size: 16px; line-height: 1; padding: 2px 6px; border-radius: 6px;
+  }
+  .del:hover { color: var(--danger); background: var(--input-bg); }
+  .empty { color: var(--text-dim); font-size: 13px; padding: 14px 0; text-align: center; }
+
+  /* 番茄钟 */
+  .pomo-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .pomo-modes { display: flex; gap: 8px; }
+  .pomo-modes button {
+    border: 1px solid var(--card-border); background: var(--input-bg); color: var(--text-dim);
+    padding: 6px 14px; border-radius: 999px; cursor: pointer; font-size: 12px;
+  }
+  .pomo-modes button.active { color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-color: transparent; }
+  .ring-box { position: relative; width: 170px; height: 170px; }
+  .ring-box svg { transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: var(--input-bg); stroke-width: 8; }
+  .ring-fg {
+    fill: none; stroke: url(#pomoGrad); stroke-width: 8; stroke-linecap: round;
+    stroke-dasharray: 339.292; transition: stroke-dashoffset .4s linear;
+  }
+  .ring-text {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  #pomo-time { font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  #pomo-label { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .pomo-controls { display: flex; gap: 10px; }
+  #pomo-msg { font-size: 12px; color: var(--ok); min-height: 16px; }
+
+  /* 复习卡片 */
+  .flip { perspective: 900px; height: 150px; cursor: pointer; }
+  .flip-inner {
+    position: relative; width: 100%; height: 100%; transition: transform .5s;
+    transform-style: preserve-3d;
+  }
+  .flip.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-face {
+    position: absolute; inset: 0; backface-visibility: hidden;
+    border: 1px solid var(--card-border); border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 14px; text-align: center; gap: 8px;
+  }
+  .flip-front { background: var(--input-bg); }
+  .flip-back { background: linear-gradient(135deg, rgba(99,102,241,.25), rgba(34,211,238,.2)); transform: rotateY(180deg); }
+  .flip-face .tag { font-size: 11px; color: var(--text-dim); }
+  .flip-face .qa { font-size: 14.5px; line-height: 1.5; }
+  .flip-hint { font-size: 11px; color: var(--text-dim); }
+  .review-controls { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+  .review-controls .btn { padding: 7px 12px; font-size: 12px; }
+  #review-pos { margin-left: auto; font-size: 12px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+  /* 课程表 */
+  .table-scroll { overflow-x: auto; }
+  #schedule-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  #schedule-table th, #schedule-table td {
+    border: 1px solid var(--card-border); padding: 8px 6px; text-align: center; min-width: 76px;
+  }
+  #schedule-table th { color: var(--text-dim); font-weight: 600; background: var(--input-bg); }
+  #schedule-table th.today, #schedule-table td.today { background: rgba(99, 102, 241, .14); }
+  #schedule-table th.today { color: var(--accent); }
+  #schedule-table td[contenteditable] { outline: none; cursor: text; height: 44px; }
+  #schedule-table td[contenteditable]:focus { border-color: var(--accent); background: var(--input-bg); }
+  .schedule-tip { font-size: 11px; color: var(--text-dim); margin-top: 8px; }
+
+  /* 链接 */
+  .links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .links a {
+    display: block; text-decoration: none; color: var(--text);
+    border: 1px solid var(--card-border); background: var(--input-bg);
+    border-radius: 10px; padding: 10px 12px; font-size: 13px; transition: border-color .2s;
+  }
+  .links a:hover { border-color: var(--accent); }
+  .links a small { display: block; color: var(--text-dim); font-size: 11px; margin-top: 2px; }
+
+  footer { text-align: center; color: var(--text-dim); font-size: 12px; padding: 6px 0 22px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="brand-logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      </svg>
+    </div>
+    <div>
+      <h1>学习工作台</h1>
+      <p>Study Workbench · 专注 · 复习 · 规划</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="clock">
+      <div id="clock-time">--:--:--</div>
+      <div id="clock-date">加载中</div>
+    </div>
+    <button id="theme-toggle" aria-label="切换主题">浅色模式</button>
+  </div>
+</header>
+
+<div class="stats">
+  <div class="stat"><span class="stat-dot" style="background:var(--accent)"></span><div><b id="stat-todo">0/0</b><span>今日待办完成</span></div></div>
+  <div class="stat"><span class="stat-dot" style="background:var(--accent-2)"></span><div><b id="stat-pomo">0</b><span>今日专注番茄</span></div></div>
+  <div class="stat"><span class="stat-dot" style="background:var(--ok)"></span><div><b id="stat-review">0</b><span>待复习卡片</span></div></div>
+</div>
+
+<main>
+  <section class="card" id="card-todo">
+    <h2>待办事项<small>本地保存</small></h2>
+    <form id="todo-form" autocomplete="off">
+      <input id="todo-input" type="text" placeholder="添加一项学习任务，回车确认" maxlength="80" aria-label="新待办内容">
+      <button class="btn" type="submit">添加</button>
+    </form>
+    <ul id="todo-list"></ul>
+    <div class="empty" id="todo-empty">暂无待办，添加第一项学习任务吧</div>
+  </section>
+
+  <section class="card" id="card-pomo">
+    <h2>番茄钟<small>25 分钟专注</small></h2>
+    <div class="pomo-wrap">
+      <div class="pomo-modes">
+        <button id="pomo-mode-focus" class="active" type="button">专注 25:00</button>
+        <button id="pomo-mode-break" type="button">短休 05:00</button>
+      </div>
+      <div class="ring-box">
+        <svg width="170" height="170" viewBox="0 0 120 120" aria-hidden="true">
+          <defs>
+            <linearGradient id="pomoGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#818cf8"/><stop offset="100%" stop-color="#22d3ee"/>
+            </linearGradient>
+          </defs>
+          <circle class="ring-bg" cx="60" cy="60" r="54"/>
+          <circle class="ring-fg" id="pomo-ring" cx="60" cy="60" r="54"/>
+        </svg>
+        <div class="ring-text">
+          <div id="pomo-time">25:00</div>
+          <div id="pomo-label">准备专注</div>
+        </div>
+      </div>
+      <div class="pomo-controls">
+        <button class="btn" id="pomo-start" type="button">开始</button>
+        <button class="btn ghost" id="pomo-reset" type="button">重置</button>
+      </div>
+      <div id="pomo-msg" role="status"></div>
+    </div>
+  </section>
+
+  <section class="card" id="card-review">
+    <h2>今日复习<small id="review-total">卡片库加载中</small></h2>
+    <div class="flip" id="review-flip" title="点击翻转卡片">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="tag" id="review-topic">--</div>
+          <div class="qa" id="review-q">正在加载复习卡片…</div>
+          <div class="flip-hint">点击查看答案</div>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="tag">参考答案</div>
+          <div class="qa" id="review-a">--</div>
+          <div class="flip-hint">点击返回问题</div>
+        </div>
+      </div>
+    </div>
+    <div class="empty" id="review-empty" hidden>今日无待复习卡片，明天再来</div>
+    <div class="review-controls">
+      <button class="btn ghost" id="review-prev" type="button">上一张</button>
+      <button class="btn" id="review-done" type="button">已复习</button>
+      <button class="btn ghost" id="review-next" type="button">下一张</button>
+      <span id="review-pos">0/0</span>
+    </div>
+  </section>
+
+  <section class="card" id="card-schedule">
+    <h2>本周课程表<small>点击单元格直接编辑</small></h2>
+    <div class="table-scroll">
+      <table id="schedule-table"></table>
+    </div>
+    <div class="schedule-tip">课程表自动保存在浏览器本地；当天列高亮显示。</div>
+  </section>
+
+  <section class="card" id="card-links">
+    <h2>快捷链接</h2>
+    <div class="links" id="links"></div>
+  </section>
+</main>
+
+<footer>学习工作台 · 由 Trae 搭建 · 复习数据来自 study-notes Skill 生成的 flashcards.csv</footer>
+
+<script>
+(function () {
+  "use strict";
+  const $ = (s) => document.querySelector(s);
+  const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch { return d; } };
+  const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+  const dstr = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  const today = dstr(new Date());
+
+  /* ---------- 主题 ---------- */
+  const themeBtn = $("#theme-toggle");
+  const applyTheme = (t) => {
+    document.documentElement.dataset.theme = t;
+    themeBtn.textContent = t === "dark" ? "浅色模式" : "深色模式";
+  };
+  applyTheme(load("wb_theme", "dark"));
+  themeBtn.addEventListener("click", () => {
+    const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    save("wb_theme", t); applyTheme(t);
+  });
+
+  /* ---------- 时钟 ---------- */
+  const week = ["日", "一", "二", "三", "四", "五", "六"];
+  function tickClock() {
+    const n = new Date();
+    $("#clock-time").textContent = n.toLocaleTimeString("zh-CN", { hour12: false });
+    $("#clock-date").textContent = dstr(n) + " 星期" + week[n.getDay()];
+  }
+  tickClock(); setInterval(tickClock, 1000);
+
+  /* ---------- 待办 ---------- */
+  let todos = load("wb_todos", []);
+  const todoList = $("#todo-list");
+  function renderTodos() {
+    todoList.innerHTML = "";
+    todos.forEach((t) => {
+      const li = document.createElement("li");
+      if (t.done) li.classList.add("done");
+      const cb = document.createElement("input");
+      cb.type = "checkbox"; cb.checked = t.done; cb.setAttribute("aria-label", "完成 " + t.text);
+      cb.addEventListener("change", () => { t.done = cb.checked; save("wb_todos", todos); renderTodos(); });
+      const span = document.createElement("span"); span.textContent = t.text;
+      const del = document.createElement("button");
+      del.className = "del"; del.type = "button"; del.textContent = "×"; del.setAttribute("aria-label", "删除 " + t.text);
+      del.addEventListener("click", () => { todos = todos.filter((x) => x.id !== t.id); save("wb_todos", todos); renderTodos(); });
+      li.append(cb, span, del); todoList.appendChild(li);
+    });
+    $("#todo-empty").hidden = todos.length > 0;
+    $("#stat-todo").textContent = todos.filter((t) => t.done).length + "/" + todos.length;
+  }
+  $("#todo-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = $("#todo-input");
+    const text = input.value.trim();
+    if (!text) return;
+    todos.push({ id: Date.now() + "" + Math.floor(Math.random() * 1e4), text, done: false });
+    save("wb_todos", todos); input.value = ""; renderTodos();
+  });
+  renderTodos();
+
+  /* ---------- 番茄钟 ---------- */
+  const MODES = { focus: 25 * 60, break: 5 * 60 };
+  const CIRC = 339.292;
+  let pomo = { mode: "focus", remaining: MODES.focus, running: false, timer: null };
+  const pomoKey = "wb_pomo_" + today;
+  function pomoCount() { return load(pomoKey, 0); }
+  function renderPomo() {
+    const m = String(Math.floor(pomo.remaining / 60)).padStart(2, "0");
+    const s = String(pomo.remaining % 60).padStart(2, "0");
+    $("#pomo-time").textContent = m + ":" + s;
+    $("#pomo-ring").style.strokeDashoffset = CIRC * (1 - pomo.remaining / MODES[pomo.mode]);
+    $("#pomo-label").textContent = pomo.running
+      ? (pomo.mode === "focus" ? "专注中…" : "休息中…")
+      : (pomo.mode === "focus" ? "准备专注" : "准备休息");
+    $("#pomo-start").textContent = pomo.running ? "暂停" : "开始";
+    $("#pomo-mode-focus").classList.toggle("active", pomo.mode === "focus");
+    $("#pomo-mode-break").classList.toggle("active", pomo.mode === "break");
+    $("#stat-pomo").textContent = pomoCount();
+    document.title = pomo.running ? m + ":" + s + " · 学习工作台" : "学习工作台";
+  }
+  function beep() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.25].forEach((delay) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
+        g.gain.setValueAtTime(0.001, ctx.currentTime + delay);
+        g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + delay + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.2);
+        o.start(ctx.currentTime + delay); o.stop(ctx.currentTime + delay + 0.22);
+      });
+    } catch { /* 忽略音频不可用 */ }
+  }
+  function stopPomo() { clearInterval(pomo.timer); pomo.timer = null; pomo.running = false; }
+  function switchMode(mode) {
+    stopPomo(); pomo.mode = mode; pomo.remaining = MODES[mode]; renderPomo();
+  }
+  $("#pomo-mode-focus").addEventListener("click", () => switchMode("focus"));
+  $("#pomo-mode-break").addEventListener("click", () => switchMode("break"));
+  $("#pomo-reset").addEventListener("click", () => { stopPomo(); pomo.remaining = MODES[pomo.mode]; $("#pomo-msg").textContent = ""; renderPomo(); });
+  $("#pomo-start").addEventListener("click", () => {
+    if (pomo.running) { stopPomo(); renderPomo(); return; }
+    pomo.running = true;
+    pomo.timer = setInterval(() => {
+      pomo.remaining--;
+      if (pomo.remaining <= 0) {
+        stopPomo(); beep();
+        if (pomo.mode === "focus") {
+          save(pomoKey, pomoCount() + 1);
+          $("#pomo-msg").textContent = "完成一个番茄，进入短休";
+          switchMode("break");
+        } else {
+          $("#pomo-msg").textContent = "休息结束，开始新的专注";
+          switchMode("focus");
+        }
+      }
+      renderPomo();
+    }, 1000);
+    renderPomo();
+  });
+  renderPomo();
+
+  /* ---------- 今日复习（读取 study-notes Skill 的 flashcards.csv） ---------- */
+  function parseCSV(text) {
+    const rows = []; let row = [], field = "", inQ = false;
+    text = text.replace(/^\uFEFF/, "");
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (inQ) {
+        if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQ = false; }
+        else field += c;
+      } else if (c === '"') inQ = true;
+      else if (c === ",") { row.push(field); field = ""; }
+      else if (c === "\n" || c === "\r") {
+        if (c === "\r" && text[i + 1] === "\n") i++;
+        row.push(field); field = "";
+        if (row.some((x) => x !== "")) rows.push(row);
+        row = [];
+      } else field += c;
+    }
+    row.push(field);
+    if (row.some((x) => x !== "")) rows.push(row);
+    return rows;
+  }
+  const reviewedKey = "wb_reviewed_" + today;
+  let allCards = [], dueCards = [], reviewIdx = 0;
+  function rebuildDue() {
+    const reviewed = new Set(load(reviewedKey, []));
+    dueCards = allCards.filter((c) => (c.next <= today || c.created === today) && !reviewed.has(c.q));
+    reviewIdx = 0; renderReview();
+  }
+  function renderReview() {
+    const flip = $("#review-flip"), empty = $("#review-empty");
+    $("#stat-review").textContent = dueCards.length;
+    if (!dueCards.length) {
+      flip.hidden = true; empty.hidden = false;
+      $("#review-pos").textContent = "0/0";
+      return;
+    }
+    flip.hidden = false; empty.hidden = true;
+    const c = dueCards[Math.min(reviewIdx, dueCards.length - 1)];
+    flip.classList.remove("flipped");
+    $("#review-topic").textContent = c.subject + " · " + c.topic;
+    $("#review-q").textContent = c.q;
+    $("#review-a").textContent = c.a;
+    $("#review-pos").textContent = (reviewIdx + 1) + "/" + dueCards.length;
+  }
+  $("#review-flip").addEventListener("click", () => $("#review-flip").classList.toggle("flipped"));
+  $("#review-prev").addEventListener("click", () => { if (dueCards.length) { reviewIdx = (reviewIdx - 1 + dueCards.length) % dueCards.length; renderReview(); } });
+  $("#review-next").addEventListener("click", () => { if (dueCards.length) { reviewIdx = (reviewIdx + 1) % dueCards.length; renderReview(); } });
+  $("#review-done").addEventListener("click", () => {
+    if (!dueCards.length) return;
+    const c = dueCards[reviewIdx];
+    const reviewed = load(reviewedKey, []);
+    reviewed.push(c.q); save(reviewedKey, reviewed);
+    rebuildDue();
+  });
+  fetch("../notes/flashcards.csv")
+    .then((r) => { if (!r.ok) throw new Error(r.status); return r.text(); })
+    .then((text) => {
+      const rows = parseCSV(text);
+      allCards = rows.slice(1).map((r) => ({ subject: r[0], topic: r[1], q: r[2], a: r[3], created: r[4], next: r[5] }));
+      $("#review-total").textContent = "卡片库共 " + allCards.length + " 张";
+      rebuildDue();
+    })
+    .catch(() => {
+      $("#review-total").textContent = "卡片库不可用";
+      $("#review-q").textContent = "无法加载 flashcards.csv，请通过 HTTP 服务访问本页面";
+      $("#review-flip").classList.remove("flipped");
+      $("#stat-review").textContent = "0";
+    });
+
+  /* ---------- 课程表 ---------- */
+  const days = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
+  const periods = ["1-2 节", "3-4 节", "5-6 节", "7-8 节"];
+  const defaultGrid = [
+    ["数据结构", "高等数学", "数据结构", "高等数学", "计算机网络", "", ""],
+    ["大学英语", "", "操作系统", "大学英语", "操作系统实验", "", ""],
+    ["", "计算机网络", "", "", "程序设计实践", "", ""],
+    ["程序设计实践", "", "体育", "", "", "", ""]
+  ];
+  let grid = load("wb_schedule", defaultGrid);
+  const table = $("#schedule-table");
+  function renderSchedule() {
+    table.innerHTML = "";
+    const todayCol = (new Date().getDay() + 6) % 7;
+    const thead = document.createElement("thead");
+    const hr = document.createElement("tr");
+    const th0 = document.createElement("th"); th0.textContent = "节次"; hr.appendChild(th0);
+    days.forEach((d, i) => {
+      const th = document.createElement("th"); th.textContent = d;
+      if (i === todayCol) th.classList.add("today");
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr); table.appendChild(thead);
+    const tbody = document.createElement("tbody");
+    periods.forEach((p, r) => {
+      const tr = document.createElement("tr");
+      const th = document.createElement("th"); th.textContent = p; tr.appendChild(th);
+      days.forEach((_, c) => {
+        const td = document.createElement("td");
+        td.contentEditable = "true";
+        td.textContent = (grid[r] && grid[r][c]) || "";
+        if (c === todayCol) td.classList.add("today");
+        td.addEventListener("input", () => { grid[r][c] = td.textContent.trim(); save("wb_schedule", grid); });
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+  }
+  renderSchedule();
+
+  /* ---------- 快捷链接 ---------- */
+  const links = [
+    { name: "Gitee", url: "https://gitee.com", desc: "代码托管" },
+    { name: "GitHub", url: "https://github.com", desc: "开源社区" },
+    { name: "LeetCode", url: "https://leetcode.cn", desc: "算法练习" },
+    { name: "MDN", url: "https://developer.mozilla.org/zh-CN/", desc: "Web 文档" },
+    { name: "中国大学MOOC", url: "https://www.icourse163.org", desc: "在线课程" },
+    { name: "Trae", url: "https://www.trae.cn", desc: "AI 编程助手" }
+  ];
+  const linksBox = $("#links");
+  links.forEach((l) => {
+    const a = document.createElement("a");
+    a.href = l.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+    a.innerHTML = "";
+    const b = document.createElement("b"); b.textContent = l.name;
+    const s = document.createElement("small"); s.textContent = l.desc;
+    a.append(b, s); linksBox.appendChild(a);
+  });
+})();
+</script>
+</body>
+</html>
