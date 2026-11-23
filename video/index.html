@@ -364,6 +364,8 @@
         </div>
       </div>
 
+      <audio id="el-music" data-start="0" data-track-index="2" src="music.wav" data-volume="0.8"></audio>
+
     </div>
 
     <script>
@@ -372,7 +374,7 @@
 
       /* ===== Scene 1 · 开场 (0 - 5.5) ===== */
       tl.from("#s1-chip", { y: 30, opacity: 0, duration: 0.55, ease: "power3.out" }, 0.2);
-      tl.from("#s1-title", { y: 90, opacity: 0, duration: 0.85, ease: "expo.out" }, 0.45);
+      tl.from("#s1-title", { y: 40, duration: 0.85, ease: "expo.out" }, 0.1);
       tl.from("#s1-sub", { y: 34, opacity: 0, duration: 0.6, ease: "power2.out" }, 0.95);
       tl.from("#s1-rule", { scaleX: 0, transformOrigin: "left center", duration: 0.6, ease: "power2.inOut" }, 1.05);
       tl.from("#s1-tags", { y: 20, opacity: 0, duration: 0.5, ease: "sine.out" }, 1.35);
